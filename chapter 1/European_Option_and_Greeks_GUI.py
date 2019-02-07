@@ -2,6 +2,7 @@ from tkinter import *
 from math import exp, log, pi
 
 fields = ('Stock Price', 'Strike Price', 'Interest Rate', 'Volatility', 'Remaining Time')
+call_put_fields = ('Vanilla Call Price','Vanilla Put Price','Delta Call Option','Delta Put Option','Gamma Call Option','Gamma Put Option','Theta Call Option','Theta Put Option','Vega Call Option','Vega Put Option','Rho Call Option','Rho Put Option')
 
 def calculate(entries):
     S = float(entries['Stock Price'].get())
@@ -26,7 +27,24 @@ def calculate(entries):
     print("\n")
     print('Rho of the call option = %f' %vanilla_call_Rho(S, K, r, v, T))
     print('Rho of the put option = %f' %vanilla_put_Rho(S, K, r, v, T))
+    
+    updatelist[0].set(str(vanilla_call_price(S, K, r, v, T)))
+    updatelist[1].set(str(vanilla_put_price(S, K, r, v, T)))
 
+    updatelist[2].set(str(vanilla_call_Delta(S, K, r, v, T)))
+    updatelist[3].set(str(vanilla_put_Delta(S, K, r, v, T)))
+
+    updatelist[4].set(str(vanilla_call_Gamma(S, K, r, v, T)))
+    updatelist[5].set(str(vanilla_call_Gamma(S, K, r, v, T)))
+
+    updatelist[6].set(str(vanilla_call_Theta(S, K, r, v, T)))
+    updatelist[7].set(str(vanilla_put_Theta(S, K, r, v, T)))
+
+    updatelist[8].set(str(vanilla_call_Vega(S, K, r, v, T)))
+    updatelist[9].set(str(vanilla_put_Vega(S, K, r, v, T)))
+
+    updatelist[10].set(str(vanilla_call_Rho(S, K, r, v, T)))
+    updatelist[11].set(str(vanilla_put_Rho(S, K, r, v, T)))
 def norm_pdf(x):
     return (1.0/((2*pi)**0.5))*exp(-0.5*x*x)
 
@@ -81,7 +99,7 @@ def vanilla_put_Rho(S, K, r, v, T):
     return -T * exp(-r * T) * K * (1 - norm_cdf(d_j(2, S, K, r, v, T)))
 
 
-def makeform(root, fields):
+def makeform(root, fields, callputfields):
     entries = {}
     for field in fields:
         row = Frame(root)
@@ -92,13 +110,27 @@ def makeform(root, fields):
         lab.pack(side=LEFT)
         ent.pack(side=RIGHT, expand=YES, fill=X)
         entries[field] = ent
+        
+   for field in callputfields:
+        row = Frame(root)
+        lab = Label(row, width=22, text=field+": ", anchor='w', bg = 'light pink')
+        lab2 = Label(row, width=22, textvariable = updatelist[call_put_fields.index(field)], anchor='w', bg = 'light yellow')
+        row.pack(side=TOP, fill=X, padx=5, pady=5)
+        lab.pack(side=LEFT)
+        lab2.pack(side=RIGHT)   
     return entries
 
-
+def initialise_list():
+    templist = []
+    for _ in range(12):
+        var = StringVar()
+        templist.append(var)
+    return templist
 
 
 if __name__ == '__main__':
     root = Tk()
+    updatelist = initialise_list()
     root.title("European Option and Greeks")
     ents = makeform(root, fields)
     root.bind('<Return>', (lambda event, e=ents: fetch(e)))
