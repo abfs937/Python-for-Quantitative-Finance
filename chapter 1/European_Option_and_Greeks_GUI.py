@@ -101,11 +101,13 @@ def vanilla_put_Rho(S, K, r, v, T):
 
 def makeform(root, fields, callputfields):
     entries = {}
+    templist = []
     for field in fields:
         row = Frame(root)
         lab = Label(row, width=22, text=field+": ", anchor='w', bg = 'light blue')
         ent = Entry(row)
         ent.insert(0,"0")
+        templist.append(ent)
         row.pack(side=TOP, fill=X, padx=5, pady=5)
         lab.pack(side=LEFT)
         ent.pack(side=RIGHT, expand=YES, fill=X)
@@ -118,7 +120,7 @@ def makeform(root, fields, callputfields):
         row.pack(side=TOP, fill=X, padx=5, pady=5)
         lab.pack(side=LEFT)
         lab2.pack(side=RIGHT)   
-    return entries
+    return entries,templist
 
 def initialise_list():
     templist = []
@@ -127,16 +129,25 @@ def initialise_list():
         templist.append(var)
     return templist
 
+def clearentries(entrylist):
+	for entry in entrylist:
+		entry.delete(0, END)
+		entry.insert(0, "0")	
+	for textvar in updatelist:
+		textvar.set("")
 
 if __name__ == '__main__':
     root = Tk()
     updatelist = initialise_list()
     root.title("European Option and Greeks")
-    ents = makeform(root, fields)
-    root.bind('<Return>', (lambda event, e=ents: fetch(e)))
+    collection = makeform(root, fields,call_put_fields)
+    root.bind('<Return>', (lambda event, e=collection[0]: fetch(e)))
     b1 = Button(root, text='Quit', bg = 'light pink', command=root.quit)
     b1.pack(side=RIGHT, padx=5, pady=5)
     b2 = Button(root, text='Calculate', bg = 'light pink',
-            command=(lambda e=ents: calculate(e)))
+            command=(lambda e=collection[0]: calculate(e)))
     b2.pack(side=RIGHT, padx=5, pady=5)
+    b3 = Button(root, text='Clear', bg = 'light pink', 
+			command=(lambda e=collection[1]: clearentries(e)))
+	b3.pack(side=RIGHT, padx=5, pady=5)
     root.mainloop()
