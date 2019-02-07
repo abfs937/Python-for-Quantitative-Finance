@@ -1,7 +1,7 @@
 from tkinter import *
 from math import exp, log, pi
 
-fields = ('Stock Price', 'Strike Price', 'Interest Rate', 'Volatility', 'Remaining Time')
+fields = ('Stock Price', 'Strike Price', 'Interest Rate', 'Volatility', 'Dividend Yield', 'Expiry Time')
 call_put_fields = ('Vanilla Call Price', 'Vanilla Put Price', 'Call Delta', 'Put Delta', 'Call Gamma', 'Put Gamma', 'Call Theta', 'Put Theta', 'Call Vega', 'Put Vega', 'Call Rho', 'Put Rho')
 
 def calculate(entries):
@@ -9,26 +9,26 @@ def calculate(entries):
     K = float(entries['Strike Price'].get())
     r = float(entries['Interest Rate'].get())
     v = float(entries['Volatility'].get())
-    T = float(entries['Remaining Time'].get())
+    d = float(entries['Dividend Yield'].get())
+    T = float(entries['Expiry Time'].get())
 
+    updatelist[0].set(round(float(vanilla_call_price(S, K, r, v, d, T)),6))
+    updatelist[1].set(round(float(vanilla_put_price(S, K, r, v, d, T)),6))
 
-    updatelist[0].set(round(float(vanilla_call_price(S, K, r, v, T)),4))
-    updatelist[1].set(round(float(vanilla_put_price(S, K, r, v, T)),4))
+    updatelist[2].set(round(float(vanilla_call_Delta(S, K, r, v, d, T)),6))
+    updatelist[3].set(round(float(vanilla_put_Delta(S, K, r, v, d, T)),6))
 
-    updatelist[2].set(round(float(vanilla_call_Delta(S, K, r, v, T)),4))
-    updatelist[3].set(round(float(vanilla_put_Delta(S, K, r, v, T)),4))
+    updatelist[4].set(round(float(vanilla_call_Gamma(S, K, r, v, d, T)),6))
+    updatelist[5].set(round(float(vanilla_call_Gamma(S, K, r, v, d, T)),6))
 
-    updatelist[4].set(round(float(vanilla_call_Gamma(S, K, r, v, T)),4))
-    updatelist[5].set(round(float(vanilla_call_Gamma(S, K, r, v, T)),4))
+    updatelist[6].set(round(float(vanilla_call_Theta(S, K, r, v, d, T)),6))
+    updatelist[7].set(round(float(vanilla_put_Theta(S, K, r, v, d, T)),6))
 
-    updatelist[6].set(round(float(vanilla_call_Theta(S, K, r, v, T)),4))
-    updatelist[7].set(round(float(vanilla_put_Theta(S, K, r, v, T)),4))
+    updatelist[8].set(round(float(vanilla_call_Vega(S, K, r, v, d, T)),6))
+    updatelist[9].set(round(float(vanilla_put_Vega(S, K, r, v, d, T)),6))
 
-    updatelist[8].set(round(float(vanilla_call_Vega(S, K, r, v, T)),4))
-    updatelist[9].set(round(float(vanilla_put_Vega(S, K, r, v, T)),4))
-
-    updatelist[10].set(round(float(vanilla_call_Rho(S, K, r, v, T)),4))
-    updatelist[11].set(round(float(vanilla_put_Rho(S, K, r, v, T)),4))
+    updatelist[10].set(round(float(vanilla_call_Rho(S, K, r, v, d, T)),6))
+    updatelist[11].set(round(float(vanilla_put_Rho(S, K, r, v, d, T)),6))
 
 def norm_pdf(x):
     return (1.0/((2*pi)**0.5))*exp(-0.5*x*x)
@@ -42,46 +42,46 @@ def norm_cdf(x):
     else:
         return 1.0 - norm_cdf(-x)
 
-def d_j(j, S, K, r, v, T):
-    return (log(S/K) + (r + ((-1)**(j-1))*0.5*v*v)*T)/(v*(T**0.5))
+def d_j(j, S, K, r, v, d, T):
+    return (log(S/K) + (r - d + ((-1)**(j-1))*0.5*v*v)*T)/(v*(T**0.5))
 
-def vanilla_call_price(S, K, r, v, T):
-    return S * norm_cdf(d_j(1, S, K, r, v, T)) - \
-        K*exp(-r*T) * norm_cdf(d_j(2, S, K, r, v, T))
+def vanilla_call_price(S, K, r, v, d, T):
+    return  S * exp(-d*T) * norm_cdf(d_j(1, S, K, r, v, d, T)) - \
+        K*exp(-r*T) * norm_cdf(d_j(2, S, K, r, v, d, T))
 
-def vanilla_put_price(S, K, r, v, T):
-    return -S * norm_cdf(-d_j(1, S, K, r, v, T)) + \
-        K*exp(-r*T) * norm_cdf(-d_j(2, S, K, r, v, T))
+def vanilla_put_price(S, K, r, v, d, T):
+    return -S * exp(-d*T) * norm_cdf(-d_j(1, S, K, r, v, d, T)) + \
+        K*exp(-r*T) * norm_cdf(-d_j(2, S, K, r, v, d, T))
 
-def vanilla_call_Delta(S, K, r, v, T):
-    return norm_cdf(d_j(1, S, K, r, v, T))
+def vanilla_call_Delta(S, K, r, v, d, T):
+    return norm_cdf(d_j(1, S, K, r, v, d, T)) * exp(-d*T)
 
-def vanilla_put_Delta(S, K, r, v, T):
-    return -norm_cdf(-d_j(1, S, K, r, v, T))
+def vanilla_put_Delta(S, K, r, v, d, T):
+    return -norm_cdf(-d_j(1, S, K, r, v, d, T)) * exp(-d*T)
 
-def vanilla_call_Gamma(S, K, r, v, T):
-    return norm_pdf(d_j(1, S, K, r, v, T)) / (v * S * (T**0.5))
+def vanilla_call_Gamma(S, K, r, v, d, T):
+    return norm_pdf(d_j(1, S, K, r, v, d, T)) * exp(-d*T) / (v * S * (T**0.5))
 
-def vanilla_put_Gamma(S, K, r, v, T):
-    return vanilla_call_Gamma(S, K, r, v, T)
+def vanilla_put_Gamma(S, K, r, v, d, T):
+    return vanilla_call_Gamma(S, K, r, v, d, T)
 
-def vanilla_call_Theta(S, K, r, v, T):
-    return -(v * S * norm_pdf(d_j(1, S, K, r, v, T)) / (2 * (T ** 0.5))) - r * exp ( -r * (T)) * K * norm_cdf(d_j(2, S, K, r, v, T))
+def vanilla_call_Theta(S, K, r, v, d, T):
+    return -(v * S * norm_pdf(d_j(1, S, K, r, v, d, T)) * exp(-d*T) / (2 * (T ** 0.5))) - r * exp ( -r * (T)) * K * norm_cdf(d_j(2, S, K, r, v, d, T)) + d * S * exp(-d*T) * norm_cdf(d_j(1, S, K, r, v, d, T))
 
-def vanilla_put_Theta(S, K, r, v, T):
-    return -(v * S * norm_pdf(-d_j(1, S, K, r, v, T)) / (2 * (T ** 0.5))) + r * exp ( -r * (T)) * K * norm_cdf(-d_j(2, S, K, r, v, T))
+def vanilla_put_Theta(S, K, r, v, d, T):
+    return -(v * S * norm_pdf(-d_j(1, S, K, r, v, d, T)) * exp(-d*T) / (2 * (T ** 0.5))) + r * exp ( -r * (T)) * K * norm_cdf(-d_j(2, S, K, r, v, d, T)) - d * S * exp(-d*T) * norm_cdf(-d_j(1, S, K, r, v, d, T))
 
-def vanilla_call_Vega(S, K, r, v, T):
-    return S * norm_pdf(d_j(1, S, K, r, v, T)) * (T**0.5)
+def vanilla_call_Vega(S, K, r, v, d, T):
+    return S * norm_pdf(d_j(1, S, K, r, v, d, T)) * exp(-d*T) * (T**0.5)
 
-def vanilla_put_Vega(S, K, r, v, T):
-    return vanilla_call_Vega(S, K, r, v, T)
+def vanilla_put_Vega(S, K, r, v, d, T):
+    return vanilla_call_Vega(S, K, r, v, d, T)
 
-def vanilla_call_Rho(S, K, r, v, T):
-    return T * exp(-r * T) * K * norm_cdf(d_j(2, S, K, r, v, T))
+def vanilla_call_Rho(S, K, r, v, d, T):
+    return T * exp(-r * T) * K * norm_cdf(d_j(2, S, K, r, v, d, T))
 
-def vanilla_put_Rho(S, K, r, v, T):
-    return -T * exp(-r * T) * K * (1 - norm_cdf(d_j(2, S, K, r, v, T)))
+def vanilla_put_Rho(S, K, r, v, d, T):
+    return -T * exp(-r * T) * K * norm_cdf(-d_j(2, S, K, r, v, d, T))
 
 def makeform(root, fields, call_put_fields):
     entries = {}
@@ -130,8 +130,8 @@ if __name__ == '__main__':
     root.bind('<Return>', (lambda event, e=collection[0]: fetch(e)))
     b1 = Button(root, text='Quit', bg = 'light pink', command=root.quit)
     b1.pack(side=RIGHT, padx=5, pady=5)
-    b2 = Button(root, text='Calculate', bg = 'light pink', command=(lambda e=collection[0]: calculate(e)))
+    b2 = Button(root, text='Calculate', bg = 'light green', command=(lambda e=collection[0]: calculate(e)))
     b2.pack(side=RIGHT, padx=5, pady=5)
-    b3 = Button(root, text='Clear', bg = 'light pink', command=(lambda e=collection[1]: clearentries(e)))
+    b3 = Button(root, text='Clear', bg = 'light blue', command=(lambda e=collection[1]: clearentries(e)))
     b3.pack(side=RIGHT, padx=5, pady=5)
     root.mainloop()
