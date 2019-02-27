@@ -1,17 +1,18 @@
 import random
 import numpy as np
+
 # How many times of simulation we want to run
 times = 100
 
 
 class RandomGen(object):
 
-# The constructor method for a class
+    # The constructor method for a class
     def __init__(self):
         self._random_nums = set([])
         self._probabilities = []
 
-# Generate 5 random numbers without duplication
+    # Generate 5 random numbers without duplication
     def generate_random_nums(self):
         for i in range(0, 5):
             randi = random.randint(-1000, 1000)
@@ -20,7 +21,7 @@ class RandomGen(object):
             list1.sort()
         return list1
 
-# Generate 5 random >=0 probabilities, the sum must be 1
+    # Generate 5 random >=0 probabilities, the sum must be 1
     def generate_probabilities(self):
         n = 5
         list2 = []
@@ -32,7 +33,7 @@ class RandomGen(object):
                 list2.append(i)
         return list2
 
-# print out simulated probabilities
+    # print out simulated probabilities
     def next_num(self):
         list3 = []
         for i in range(0, times):
@@ -63,3 +64,7 @@ if __name__ == '__main__':
     print('the given numbers are: %s' % _random_nums_final)
     print('the given probabilities are: %s' % _probabilities_final)
     call_class.next_num()
+
+# In order to make the code more "pythonically", I should make the naming of methods and variables better.
+# A second thing I can improve is to make a long method break into some smaller ones.
+# I should also make my coding style consistent.
